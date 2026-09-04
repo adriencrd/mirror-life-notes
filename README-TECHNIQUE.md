@@ -1,4 +1,4 @@
-# Note technique — carte computationnelle de l'évasion immunitaire par la vie miroir
+# Note technique : carte computationnelle de l'évasion immunitaire par la vie miroir
 
 *Version détaillée. Pour une introduction sans prérequis, voir
 [README-SIMPLE.md](README-SIMPLE.md).*
@@ -24,7 +24,7 @@ présenterait l'énantiomère de chaque PAMP.
 | Signe | Lecture |
 |---|---|
 | ΔΔG ≫ 0 | perte de reconnaissance : l'immunité innée serait aveugle |
-| ΔΔG ≈ 0 | signal résiduel — résultat **falsifiant**, et piste de contre-mesure |
+| ΔΔG ≈ 0 | signal résiduel, résultat **falsifiant**, et piste de contre-mesure |
 | ΔΔG < 0 | liaison renforcée : inattendu, à investiguer |
 
 Le design est intentionnellement falsifiable : les trois issues sont
@@ -40,7 +40,7 @@ publiables. Recherche strictement *in silico* et défensive.
 | TLR1/2 / Pam3CSK4 | 2Z7X (humain, 2.1 Å) | PDB | Pam3CSK4, CID 130704 | récepteur + ligands prêts |
 | TLR4-MD2 / lipide A | 4G8A (humain, 2.4 Å) | PDB | Re-LPS | structure choisie |
 | TLR5 / flagelline | ColabFold Q9NR61 | modèle | FliC (295 res) | FASTA préparé |
-| Dectine-1 / β-glucane | — | — | — | abandonné (structure murine) |
+| Dectine-1 / β-glucane | aucune | aucune | aucun | abandonné (structure murine) |
 
 Ordre de traitement décidé (≠ ordre du cahier des charges) : valider la pipeline
 petite-molécule sur le système le plus léger, puis monter en difficulté. Elle est
@@ -76,7 +76,7 @@ audit automatisé (`inventory.py`) : 3FXI (3.1 Å, ligand éclaté sur 13 résid
 
 | | Valeur |
 |---|---|
-| Champ de force protéine | **ff14SB** (pas ff19SB — voir §4.1) |
+| Champ de force protéine | **ff14SB**, pas ff19SB (voir §4.1) |
 | Ligand | GAFF2 + charges AM1-BCC (antechamber) |
 | Solvant | TIP3P explicite, boîte dodécaédrique, marge 10 Å |
 | Force ionique | 150 mM NaCl, neutralisé |
@@ -92,7 +92,7 @@ audit automatisé (`inventory.py`) : 3FXI (3.1 Å, ligand éclaté sur 13 résid
 
 ## 4. Décisions méthodologiques, chacune adossée à une mesure
 
-### 4.1 — ff14SB et non ff19SB
+### 4.1 ff14SB et non ff19SB
 
 ff19SB introduit des cartes **CMAP** ajustées sur des L-acides aminés. Un terme
 paramétré sur une seule main **brise la symétrie chirale du potentiel** : le
@@ -112,7 +112,7 @@ CMAP) ; le récepteur reste L dans les deux bras, donc le CMAP se compenserait
 largement. Le choix est décisif pour **TLR5** (ligand protéique reflété), pas
 pour NOD1. Le survendre serait attaquable.
 
-### 4.2 — Miroir par réflexion globale des coordonnées
+### 4.2 Miroir par réflexion globale des coordonnées
 
 L'énantiomère complet s'obtient par une **opération de symétrie impropre**
 (det = −1) appliquée à toutes les coordonnées, et non par inversion centre par
@@ -131,7 +131,7 @@ méso-DAP R + S). Son miroir n'est donc pas « la version D » mais l'énantiom�
 complet des 3 centres. Une inversion manuelle y serait particulièrement
 casse-gueule.
 
-### 4.3 — Protomère à pH 7.4
+### 4.3 Protomère à pH 7.4
 
 Le SMILES canonique de PubChem est la forme **neutre**. À pH 7.4, iE-DAP porte
 3 carboxylates (pKa 2–4) et 2 ammoniums (pKa 9–10), l'azote amide restant
@@ -142,7 +142,7 @@ poche basique, les charges AM1-BCC d'un COOH n'ont rien à voir avec celles d'un
 COO⁻, et l'observable du projet *est* la complémentarité électrostatique
 différentielle. Verrouillé par une assertion formule + charge dans le script 05.
 
-### 4.4 — La sortie de smina n'est pas la molécule fournie
+### 4.4 La sortie de smina n'est pas la molécule fournie
 
 smina passe par **PDBQT**, format AutoDock qui ne conserve que les hydrogènes
 polaires et ne porte aucune charge formelle. Mesure : **30 atomes rendus sur 43**
@@ -152,13 +152,13 @@ Paramétrer cette sortie telle quelle laisse openff/RDKit recompléter les
 hydrogènes par les règles de valence, ce qui **reconstruit la forme neutre en
 silence**, sans erreur ni avertissement.
 
-Correction : on ne retient de la pose que ce qu'elle apporte réellement — la
-**position des atomes lourds** — reportée sur la molécule de référence vérifiée
+Correction : on ne retient de la pose que ce qu'elle apporte réellement, la
+**position des atomes lourds**, reportée sur la molécule de référence vérifiée
 (`transfer_pose`), avec appariement sur le squelette constitutionnel
 (insensible à la protonation). Stéréochimie relue depuis la géométrie de la
 pose, pour qu'une inversion introduite par le docking reste détectable.
 
-### 4.5 — Charges AM1-BCC calculées une fois, partagées
+### 4.5 Charges AM1-BCC calculées une fois, partagées
 
 Mécanisme vérifié dans le code installé, pas supposé : openmmforcefields appelle
 `assign_partial_charges("am1bcc")` **sans** `use_conformers`, et openff
@@ -171,21 +171,22 @@ différent.
 | Deux conformères de la même molécule | **0.085 e** |
 | Naturel vs miroir (réflexion exacte) | **< 1e-4 e** |
 
-Facteur ≈ 1000. La réflexion ne change rien — l'hamiltonien AM1 ne dépend que de
-distances interatomiques, invariantes par réflexion — le conformère change tout.
+Facteur ≈ 1000. La réflexion ne change rien, l'hamiltonien AM1 ne dépendant que
+de distances interatomiques, invariantes par réflexion ; le conformère, lui,
+change tout.
 Partager les charges est donc **exact**, pas approché, et c'est mesuré.
 
 *(NAGL, réseau de neurones insensible au conformère, est essayé en premier par le
 registre openff mais **refuse** le nom `am1bcc` ; c'est bien antechamber qui
 calcule. L'avertissement NAGL au passage est sans conséquence.)*
 
-### 4.6 — Le bras miroir part de la pose naturelle réfléchie
+### 4.6 Le bras miroir part de la pose naturelle réfléchie
 
 Le score de docking est **achiral en pratique** (mesuré : −5.9 pour les deux
 bras) et le champ de force est chiral-symétrique. Seule la **géométrie
 échantillonnée** peut donc discriminer les bras : tout dépend de la pose
 initiale. Docker les deux bras indépendamment revient à tirer la pose du miroir
-à pile ou face parmi des poses quasi dégénérées — le ΔΔG mesurerait alors ce
+à pile ou face parmi des poses quasi dégénérées : le ΔΔG mesurerait alors ce
 tirage autant que la chiralité.
 
 Le miroir part donc du reflet du naturel, **resuperposé** par la rotation
@@ -194,7 +195,7 @@ RMSD des atomes lourds.
 
 ⚠ Le piège critique désamorcé ici : une rotation **impropre** défait exactement
 la réflexion et rend le ligand naturel. Le bras miroir simulerait le naturel,
-ΔΔG = 0, et on conclurait « aucune différence » — sans qu'aucune erreur ne soit
+ΔΔG = 0, et on conclurait « aucune différence », sans qu'aucune erreur ne soit
 levée. D'où l'assertion `is_true_enantiomer()` après resuperposition.
 
 **Limite assumée :** ce point de départ favorise le mode de liaison du naturel.
@@ -202,7 +203,7 @@ On mesure donc la perte de reconnaissance *dans ce mode de liaison*, pas
 l'impossibilité de toute liaison. Répondre à « quel est le meilleur mode de
 liaison du miroir ? » demanderait plusieurs poses de départ et des répliques.
 
-### 4.7 — HMR et pas de 4 fs
+### 4.7 HMR et pas de 4 fs
 
 Chaque hydrogène est porté à 4 uma, la masse étant retirée à l'atome lourd
 porteur. Mesure sur le complexe NOD1 solvaté (54 738 atomes) :
@@ -215,15 +216,15 @@ porteur. Mesure sur le complexe NOD1 solvaté (54 738 atomes) :
 Légitimité : **seules les masses changent, jamais le potentiel.** La
 thermodynamique d'équilibre est inchangée (les masses n'entrent pas dans la
 distribution de Boltzmann des positions) et le ΔΔG est une quantité d'équilibre.
-La symétrie chirale est intacte — une masse est un scalaire, invariante par
-réflexion — et le test de symétrie du champ de force passe inchangé. Masse totale
+La symétrie chirale est intacte, une masse étant un scalaire invariant par
+réflexion, et le test de symétrie du champ de force passe inchangé. Masse totale
 conservée (vérifiée par test), donc pas de densité faussée sous barostat.
 
 Ce qui change réellement : les modes de vibration rapides ralentissent, donc les
 temps de corrélation exprimés en *pas* diffèrent. Sans effet sur une moyenne
 d'équilibre. Désactivable : `MDConfig(timestep=2.0, hydrogen_mass=0.0)`.
 
-### 4.8 — Boîte dodécaédrique
+### 4.8 Boîte dodécaédrique
 
 −29.6 % d'atomes vs un cube à marge égale (+33 % de débit), mesuré. Sans
 contrepartie sur un soluté globulaire ou allongé comme un fer à cheval LRR.
@@ -243,13 +244,13 @@ la production.
 
 Variante adaptée à la comparaison de deux **énantiomères** du même ligand : les
 termes internes et entropiques du ligand se compensent largement dans le ΔΔG.
-L'entropie de mode normal n'est donc pas calculée — choix assumé et documenté,
+L'entropie de mode normal n'est donc pas calculée : choix assumé et documenté,
 à revisiter si le ΔΔG s'avère petit (audit 2.5).
 
 **Incertitude** : erreur standard par moyennes de blocs (les images sont
 autocorrélées ; l'écart-type inter-images surestime l'information), propagée en
 quadrature sur le ΔΔG. C'est une erreur **intra-run**, borne inférieure de
-l'incertitude vraie — jamais à présenter comme l'incertitude finale.
+l'incertitude vraie, jamais à présenter comme l'incertitude finale.
 
 ### Vérifications du système implicite
 
@@ -258,8 +259,8 @@ dans le champ de force, et non par un kwarg `implicitSolvent` (celui-ci
 appartient à la route `AmberPrmtopFile`). `nonbondedMethod` vit dans
 `nonperiodic_forcefield_kwargs`, les trois systèmes étant apériodiques.
 
-La topologie est lue par **OpenMM** — les mêmes liaisons que celles ayant servi
-à la production — et mdtraj n'est sollicité que pour les **coordonnées** : sa
+La topologie est lue par **OpenMM**, avec les mêmes liaisons que celles ayant
+servi à la production, et mdtraj n'est sollicité que pour les **coordonnées** : sa
 reconstruction de liaisons ne satisfait pas les gabarits ff14SB aux résidus
 terminaux, et sa sélection `"protein"` n'isole pas un ligand organique. Le
 ligand est donc identifié par élimination des acides aminés et du solvant, puis
@@ -272,7 +273,7 @@ Contrôles passés :
 |---|---|
 | Couverture GB, complexe | 4800 / 4800 particules |
 | Couverture GB, récepteur | 4758 / 4758 |
-| Couverture GB, ligand (GAFF) | 42 / 42 — pas d'évaluation dans le vide |
+| Couverture GB, ligand (GAFF) | 42 / 42, pas d'évaluation dans le vide |
 | Écrantage `implicitSolventKappa` effectif | −0.188 kcal/mol à 150 mM vs sans sel |
 | Découpage ParmEd, ordre atomique | préservé (récepteur et ligand) |
 | Chaîne 07 → 08 → 09 sur trajectoire réelle | complète, 4758 + 42 pour les deux bras |
@@ -311,7 +312,7 @@ site).
 
 ---
 
-## 7. Limites connues — rien de publiable en l'état
+## 7. Limites connues : rien de publiable en l'état
 
 | # | Limite | Classe |
 |---|---|---|
@@ -341,7 +342,7 @@ exploitable pour concevoir un détecteur.
 
 **Une comparaison inter-récepteurs.** La chaîne petite-molécule est réutilisée
 telle quelle sur NOD1, TLR4-MD2 et TLR1/2. Les ΔΔG deviennent alors comparables
-entre eux — une hiérarchie de vulnérabilité, qui indique par quel récepteur une
+entre eux : une hiérarchie de vulnérabilité, qui indique par quel récepteur une
 contre-mesure aurait le plus d'effet.
 
 **Une garantie de contraste propre.** L'invariant du §6 assure que les deux bras
@@ -351,7 +352,7 @@ comparaison de deux systèmes vaguement similaires.
 
 **Un budget de calcul compatible avec la rigueur.** Un couple coûte ≈ 5.9 h de
 GPU en production et ≈ 1 min de scoring. Ce coût rend abordables les contrôles
-qui manquent encore — répliques et expérience nulle nat-vs-nat — là où un
+qui manquent encore (répliques et expérience nulle nat-vs-nat), là où un
 protocole trois fois plus lent les rendrait hors de portée. La performance n'est
 pas ici un confort : elle est la condition de la validité statistique.
 
@@ -361,7 +362,7 @@ déficit de détection sans produire l'objet dont on redoute les effets.
 
 **Un point d'entrée pour l'expérience.** Le classement des couples et la carte
 des contacts indiquent quels systèmes justifieraient une validation en
-laboratoire sur peptides D synthétiques — travail lent et coûteux, qu'il vaut
+laboratoire sur peptides D synthétiques, travail lent et coûteux qu'il vaut
 mieux cibler.
 
 ---
@@ -431,10 +432,10 @@ silencieusement tout l'aval.
 
 ## 11. Traçabilité
 
-- [docs/00-choix-methodologiques.md](docs/00-choix-methodologiques.md) — chaque
+- [docs/00-choix-methodologiques.md](docs/00-choix-methodologiques.md) : chaque
   décision, sa justification chiffrée, le test qui la verrouille (14 points).
-- [docs/01-audit-relecture-2026-07-15.md](docs/01-audit-relecture-2026-07-15.md)
-  — relecture adversariale, statut vérifié **dans le code** pour chaque point
+- [docs/01-audit-relecture-2026-07-15.md](docs/01-audit-relecture-2026-07-15.md),
+  relecture adversariale dont le statut est vérifié **dans le code** pour chaque point
   (un point du rapport de synthèse s'est révélé faux positif à la vérification :
   d'où la règle « vérifier dans le code, pas se fier à la synthèse »).
-- [HANDOFF.md](HANDOFF.md) — état complet pour reprise ou audit sans contexte.
+- [HANDOFF.md](HANDOFF.md) : état complet pour reprise ou audit sans contexte.

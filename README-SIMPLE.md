@@ -8,7 +8,7 @@ voir [README-TECHNIQUE.md](README-TECHNIQUE.md).*
 Imagine une bactérie qui entre dans ton corps et se multiplie tranquillement.
 
 Pas de fièvre. Pas d'inflammation. Pas de fatigue. Ton système immunitaire ne
-réagit pas — non pas parce qu'il est faible, mais parce qu'il **ne la voit
+réagit pas, non pas parce qu'il est faible, mais parce qu'il **ne la voit
 pas**. Il n'a même pas conscience qu'il y a quelque chose à voir.
 
 Cette bactérie n'existe pas. On saurait bientôt la fabriquer.
@@ -27,7 +27,7 @@ Elles sont **l'image l'une de l'autre dans un miroir**. Et ça suffit à les ren
 incompatibles avec les mêmes objets.
 
 Les molécules font exactement pareil. Beaucoup existent en version « gauche » et
-version « droite ». Les chimistes appellent ça la **chiralité** — du grec
+version « droite ». Les chimistes appellent ça la **chiralité**, du grec
 *kheir*, la main.
 
 Maintenant, le fait vraiment étrange :
@@ -61,8 +61,8 @@ bactérie entièrement inversée ?**
 Ce serait de la vraie vie. Elle mangerait, se diviserait, muterait, évoluerait.
 Mais chacune de ses molécules serait le reflet des nôtres.
 
-En décembre 2024, une quarantaine de scientifiques — biologistes de synthèse,
-immunologistes, plusieurs prix Nobel — ont publié dans la revue **Science** un
+En décembre 2024, une quarantaine de scientifiques (biologistes de synthèse,
+immunologistes, plusieurs prix Nobel) ont publié dans la revue **Science** un
 avertissement accompagné d'un rapport technique de plusieurs centaines de pages.
 Leur message, en substance :
 
@@ -136,7 +136,7 @@ dit pas **combien**, ni **où subsiste une faille exploitable**.
 C'est ce que ce dépôt essaie de produire. Pas un avis de plus dans le débat : un
 nombre, reproductible, vérifiable, avec sa barre d'erreur.
 
-Et — c'est peut-être le plus important — **un nombre qui a le droit de
+Et, c'est peut-être le plus important, **un nombre qui a le droit de
 contredire l'hypothèse de départ.**
 
 ---
@@ -157,7 +157,7 @@ La méthode tient en une phrase :
 
 ### La mesure : le ΔΔG
 
-On calcule une **énergie de liaison** — à quel point la clé tient dans la
+On calcule une **énergie de liaison** : à quel point la clé tient dans la
 serrure. Puis on fait la différence entre les deux versions.
 
 Ce nombre s'appelle le **ΔΔG** (« delta-delta-G »). C'est le résultat central.
@@ -175,7 +175,7 @@ qu'une seule réponse n'est pas une expérience : c'est une démonstration.
 
 ## 6. Comment on simule ça
 
-**1. Trouver la serrure.** On récupère la structure 3D du récepteur humain — ici
+**1. Trouver la serrure.** On récupère la structure 3D du récepteur humain, ici
 NOD1, un détecteur de paroi bactérienne. Sa forme exacte n'a jamais été mesurée
 en laboratoire : on utilise une **prédiction par intelligence artificielle**
 (AlphaFold).
@@ -183,7 +183,7 @@ en laboratoire : on utilise une **prédiction par intelligence artificielle**
 **2. Construire la clé, et son reflet.** On bâtit le morceau bactérien en 3D.
 Pour obtenir le miroir, on applique une réflexion à **toutes** les coordonnées
 d'un seul coup, comme un vrai miroir. Ça compte : en inversant les atomes un par
-un, on finirait forcément par en oublier un — et une seule erreur invaliderait
+un, on finirait forcément par en oublier un, et une seule erreur invaliderait
 tout le reste, en silence.
 
 **3. Emboîter.** Un logiciel cherche la meilleure façon de poser la clé dans la
@@ -197,7 +197,7 @@ mouvement réel, à 37 °C, dans l'eau salée.
 pour y arriver, l'ordinateur calcule les forces entre **54 738 atomes**, douze
 millions et demi de fois de suite.
 
-> Soit près de **700 milliards de positions atomiques** calculées — pour un seul
+> Soit près de **700 milliards de positions atomiques** calculées, pour un seul
 > bras. Le double pour la comparaison. En un peu moins de **6 heures**, sur une
 > seule carte graphique.
 
@@ -208,7 +208,7 @@ pour les deux versions, et on soustrait.
 
 ## 7. Ce que ça permet
 
-Le but n'est pas de répéter « on serait aveugles ». C'est de **le chiffrer** — et
+Le but n'est pas de répéter « on serait aveugles ». C'est de **le chiffrer**, et
 un chiffre ouvre des portes qu'une intuition ne peut pas ouvrir.
 
 **Mesurer l'ampleur, pas seulement le sens.** « Ça colle moins bien » ne se
@@ -221,7 +221,7 @@ C'est une **carte de vulnérabilité**, et elle dit par où commencer.
 
 **Repérer ce qui résiste encore.** Chaque simulation produit la liste des acides
 aminés du récepteur qui touchent encore le motif inversé, en trois catégories :
-contacts *perdus*, *conservés*, et **apparus** — des contacts que le motif normal
+contacts *perdus*, *conservés*, et **apparus** : des contacts que le motif normal
 ne faisait même pas. Ces derniers sont les plus précieux : ils signalent un point
 d'accroche résiduel, donc une prise possible pour concevoir un **détecteur
 artificiel** là où le corps ne verrait plus rien.
@@ -240,7 +240,7 @@ garanties.
 
 ---
 
-## 8. Où en est le projet — honnêtement
+## 8. Où en est le projet, honnêtement
 
 **Aucun résultat scientifique n'est encore sorti.**
 
@@ -276,16 +276,16 @@ quelconque agent biologique.
 
 Il simule des **récepteurs humains** face à des molécules inversées, pour mesurer
 un déficit de détection. C'est un travail de **défense** : savoir précisément où
-l'on est vulnérable est le préalable pour cesser de l'être — et, idéalement, pour
+l'on est vulnérable est le préalable pour cesser de l'être, et, idéalement, pour
 avoir un détecteur prêt bien avant que la question ne se pose vraiment.
 
 ---
 
 ## Pour aller plus loin
 
-- **[README-TECHNIQUE.md](README-TECHNIQUE.md)** — la même chose, avec les
+- **[README-TECHNIQUE.md](README-TECHNIQUE.md)** : la même chose, avec les
   méthodes, les paramètres et tous les chiffres.
-- [docs/00-choix-methodologiques.md](docs/00-choix-methodologiques.md) — chaque
+- [docs/00-choix-methodologiques.md](docs/00-choix-methodologiques.md) : chaque
   décision, la mesure qui la justifie, le test qui la verrouille.
-- [docs/01-audit-relecture-2026-07-15.md](docs/01-audit-relecture-2026-07-15.md)
-  — la relecture critique : ce qui casserait si un expert regardait de près.
+- [docs/01-audit-relecture-2026-07-15.md](docs/01-audit-relecture-2026-07-15.md),
+  la relecture critique : ce qui casserait si un expert regardait de près.

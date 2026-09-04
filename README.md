@@ -1,8 +1,8 @@
-# Vie miroir et immunité innée — notes de recherche
+# Vie miroir et immunité innée : notes de recherche
 
 Notes méthodologiques d'une étude ***in silico*** en cours : **l'immunité innée
 humaine reconnaîtrait-elle encore les motifs microbiens d'une bactérie
-miroir — et à quel point ?**
+miroir, et à quel point ?**
 
 Le danger a été posé publiquement (revue *Science*, décembre 2024, ~40 auteurs
 dont plusieurs prix Nobel, appel à un moratoire). Il repose sur une attente
@@ -32,7 +32,7 @@ récepteur par récepteur.** C'est ce que ce travail essaie de produire.
 | Signe | Lecture |
 |---|---|
 | ΔΔG ≫ 0 | perte de reconnaissance : l'immunité innée serait aveugle |
-| ΔΔG ≈ 0 | signal résiduel — résultat **falsifiant**, et piste de contre-mesure |
+| ΔΔG ≈ 0 | signal résiduel, résultat **falsifiant**, et piste de contre-mesure |
 | ΔΔG < 0 | liaison renforcée : inattendu, à investiguer |
 
 Les trois issues sont publiables. Le protocole est conçu pour pouvoir contredire
@@ -40,18 +40,18 @@ l'hypothèse de départ.
 
 ---
 
-## État — aucun résultat publiable à ce jour
+## État : aucun résultat publiable à ce jour
 
 La chaîne de calcul est construite, vérifiée de bout en bout et rapide. Elle n'a
 pas encore produit de chiffre auquel on ait le droit de croire. Ce qui manque,
 par ordre d'importance :
 
-- **contrôle de calibration** — la chaîne n'a jamais reproduit un ΔG expérimental
+- **contrôle de calibration** : la chaîne n'a jamais reproduit un ΔG expérimental
   connu ; sans lui, un chiffre reste ininterprétable en absolu ;
-- **répliques et expérience nulle** (ΔΔG naturel-vs-naturel) — le signal attendu
+- **répliques et expérience nulle** (ΔΔG naturel-vs-naturel) : le signal attendu
   est de l'ordre du bruit d'un MM/GBSA mono-trajectoire ;
 - **convergence jugée sur l'énergie**, pas seulement sur le RMSD ;
-- **site de liaison de NOD1** — aucun site expérimental n'est connu pour le
+- **site de liaison de NOD1** : aucun site expérimental n'est connu pour le
   domaine LRR ; il est déduit de la forme du récepteur. Raisonnable, non prouvé.
 
 Ces limites sont énoncées ici plutôt que dissimulées : elles font partie du
@@ -71,7 +71,7 @@ miroir ou d'un quelconque agent biologique. Il documente la simulation de
 détection.
 
 C'est un travail de **défense** : savoir précisément où l'on est vulnérable est
-le préalable pour cesser de l'être — et pour disposer d'un moyen de détection
+le préalable pour cesser de l'être, et pour disposer d'un moyen de détection
 avant que la question ne se pose réellement.
 
 ---
