@@ -1,0 +1,8 @@
+# Les scripts shell sont executes par bash dans WSL : ils DOIVENT rester en LF.
+# Un seul \r en fin de ligne suffit a les casser, avec un message opaque
+# ("$'\r': command not found", "syntax error: unexpected end of file").
+# Le depot est edite depuis Windows, ou tout ecrivain en mode texte convertit en
+# CRLF : la regle est donc imposee ici plutot que laissee a la vigilance.
+*.sh    text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf

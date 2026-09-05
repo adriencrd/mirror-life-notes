@@ -209,7 +209,7 @@ pour y arriver, l'ordinateur calcule les forces entre **54 738 atomes**, douze
 millions et demi de fois de suite.
 
 > Soit près de **700 milliards de positions atomiques** calculées, pour un seul
-> bras. Le double pour la comparaison. En un peu moins de **6 heures**, sur une
+> bras. Le double pour la comparaison. En **neuf heures et demie**, sur une
 > seule carte graphique.
 
 **5. Mesurer.** On calcule l'énergie de collage sur des centaines d'instantanés,
@@ -255,9 +255,13 @@ garanties.
 
 **Aucun résultat scientifique n'est encore sorti.**
 
-La machine est construite, vérifiée de bout en bout, et rapide. Elle n'a pas
-encore produit un chiffre auquel on ait le droit de croire. La différence est
-essentielle, et elle est affichée ici plutôt que dissimulée.
+La machine est construite et vérifiée de bout en bout. La toute première
+production a démarré le **5 septembre 2026** : elle donnera, en fin de journée,
+le premier ΔΔG de l'histoire de ce projet.
+
+Ce ne sera pas pour autant un résultat. La différence est essentielle, et elle
+est affichée ici plutôt que dissimulée : ce chiffre sera un chiffre de mise au
+point, pas une mesure à laquelle on ait le droit de croire.
 
 Ce qui manque avant de pouvoir affirmer quoi que ce soit :
 
