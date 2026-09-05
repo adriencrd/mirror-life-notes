@@ -38,6 +38,10 @@ récepteur par récepteur.** C'est ce que ce travail essaie de produire.
 Les trois issues sont publiables. Le protocole est conçu pour pouvoir contredire
 l'hypothèse de départ.
 
+Coût d'un couple, de la préparation au résultat : **environ 9 h 30** sur une
+RTX 4070, dont 98 % en dynamique moléculaire (débit mesuré en conditions de
+production, barostat actif : 263 ns/jour).
+
 ---
 
 ## État : aucun résultat publiable à ce jour

@@ -7,8 +7,14 @@
 
 ## 1. Question scientifique et observable
 
-L'homochiralité du vivant est universelle : protéines en L-acides aminés, sucres
-et acides nucléiques en D. Les récepteurs de l'immunité innée (TLR, NLR)
+L'homochiralité du vivant est quasi universelle : traduction ribosomique
+exclusivement en L-acides aminés, sucres et acides nucléiques en D. Les
+exceptions connues sont non ribosomiques et circonscrites, mais réelles, et
+elles concernent directement ce projet : le peptidoglycane bactérien contient du
+D-glutamate, de la D-alanine et du méso-DAP (lui-même achiral). La glycine, elle,
+n'a pas de centre stéréogène. Une bactérie miroir inverserait aussi ces
+briques-là, ce qui rend l'énantiomère complet, et non « la version D », la seule
+construction correcte (voir §4.2). Les récepteurs de l'immunité innée (TLR, NLR)
 reconnaissent des motifs microbiens conservés (PAMP) par **complémentarité de
 forme et de charge dans un site de liaison chiral**. Une bactérie miroir
 présenterait l'énantiomère de chaque PAMP.
@@ -36,7 +42,7 @@ publiables. Recherche strictement *in silico* et défensive.
 
 | Couple | Cible | Source | Ligand | État |
 |---|---|---|---|---|
-| **NOD1 / iE-DAP** | LRR, res 650–953 | AlphaFold Q9Y239 (pLDDT ≈ 96) | iE-DAP, CID 45480617 | **pilote, prêt à produire** |
+| **NOD1 / iE-DAP** | LRR, res 650–953 | AlphaFold Q9Y239 (pLDDT 95.0) | iE-DAP, CID 45480617 | **pilote, prêt à produire** |
 | TLR1/2 / Pam3CSK4 | 2Z7X (humain, 2.1 Å) | PDB | Pam3CSK4, CID 130704 | récepteur + ligands prêts |
 | TLR4-MD2 / lipide A | 4G8A (humain, 2.4 Å) | PDB | Re-LPS | structure choisie |
 | TLR5 / flagelline | ColabFold Q9NR61 | modèle | FliC (295 res) | FASTA préparé |
@@ -46,6 +52,26 @@ Ordre de traitement décidé (≠ ordre du cahier des charges) : valider la pipe
 petite-molécule sur le système le plus léger, puis monter en difficulté. Elle est
 réutilisée sur 4 couples sur 5 ; TLR5 exige un docking protéine–protéine
 (LightDock) et une chaîne distincte.
+
+Le modèle AlphaFold du LRR de NOD1 est solide là où on l'utilise : pLDDT moyen
+**95.0** sur les 2358 atomes du domaine découpé, minimum 73.2, et **aucun atome
+sous 70**. La confiance du modèle n'est donc pas le maillon faible ; le choix du
+site de liaison l'est (§7).
+
+Coût GPU d'une production 50 ns × 2 bras, par couple :
+
+| Couple | Système solvaté | Débit | Production 50 ns × 2 bras |
+|---|---|---|---|
+| NOD1 / iE-DAP | 54 738 at. (mesuré) | 263 ns/j NPT (mesuré) | **9.1 h** |
+| TLR1/2 / Pam3CSK4 | 187 958 at. (mesuré) | ≈ 127 ns/j (extrapolé) | ≈ 19 h |
+| TLR4-MD2 / lipide A | non préparé | inconnu | non estimable |
+| TLR5 / flagelline | non préparé | inconnu | non estimable |
+
+« Extrapolé » pour TLR1/2 : le débit a été mesuré sans barostat (186 ns/jour) et
+ramené aux conditions de production par le rapport NPT/NVT mesuré sur NOD1
+(0.68). Pour TLR5, la seule structure disponible est le complexe issu de 3V47,
+**écarté du projet** parce que chimérique et non humain ; le modèle ColabFold du
+TLR5 humain n'existe pas encore, donc aucun chiffre de durée n'est défendable.
 
 **Aucune structure prescrite à l'origine ne passait tous les critères**
 (humain + résolution < 2.5 Å + ligand exploitable). Remplacements motivés par
@@ -82,11 +108,40 @@ audit automatisé (`inventory.py`) : 3FXI (3.1 Å, ligand éclaté sur 13 résid
 | Force ionique | 150 mM NaCl, neutralisé |
 | Électrostatique | PME, coupure 1.0 nm |
 | Contraintes | HBonds, eau rigide |
-| Pas / masses | **4 fs**, HMR à 4 uma (voir §4.5) |
+| Pas / masses | **4 fs**, HMR à 4 uma (voir §4.7) |
 | Thermostat / barostat | Langevin-Middle 300 K, 1 ps⁻¹ / Monte-Carlo 1 bar |
 | Production | 50 ns par bras, image toutes les 10 ps |
 | Système NOD1 | 54 738 atomes solvatés (4758 + 42 secs) |
-| Durée mesurée | **407 ns/jour → ≈ 5.9 h pour les deux bras** |
+| Débit mesuré (NPT) | **263 ns/jour** (médiane de 3, 256-317) |
+| Durée, 50 ns × 2 bras | **≈ 9.1 h** (fourchette 7.6-9.4 h) |
+
+### À quoi sert chaque étape, et ce qu'elle coûte
+
+Toutes les durées ci-dessous sont **mesurées** sur le couple NOD1 / iE-DAP
+(54 738 atomes solvatés, RTX 4070), sauf mention contraire. La variance machine
+d'un run à l'autre est de l'ordre de 20 %.
+
+| Étape | Ce qu'elle produit, et pourquoi | Durée |
+|---|---|---|
+| **05** préparation et docking | Récupère le modèle AlphaFold, découpe le domaine LRR, protone à pH 7.4. Construit iE-DAP en 3D depuis son SMILES, en vérifiant formule, charge nette et codes CIP, puis son miroir par réflexion globale. Docke les deux bras avec des paramètres strictement identiques. Sert à obtenir un point de départ crédible : le docking ne tranche rien, il place. | **≈ 2 min**, dont 19 s de docking par bras |
+| **07** dynamique moléculaire | Reporte la pose sur la molécule de référence vérifiée, réfléchit et resuperpose pour le bras miroir, applique les charges AM1-BCC partagées, solvate, minimise, chauffe puis équilibre en pression, et produit la trajectoire. C'est l'étape qui laisse le complexe se réarranger : sans elle, on ne compare que deux placements rigides. | **≈ 4.7 h par bras**, soit **9.3 h** pour les deux |
+| **08** MM/GBSA | Retire le solvant explicite, réévalue complexe, récepteur et ligand en solvant implicite GBn2, et produit le ΔG de chaque bras puis le ΔΔG avec son incertitude. C'est ici que naît l'observable du projet. | **≈ 2 min** pour les deux bras (300 images chacun) |
+| **09** analyse | RMSD du squelette et du ligand, distance minimale de liaison, RMSF, et carte de contacts comparée entre bras. Répond à deux questions que le ΔΔG seul ne pose pas : le ligand est-il resté lié, et **quels contacts** ont été perdus, conservés ou gagnés. | **≈ 10 min** pour les deux bras (5000 images chacun) |
+
+**Total d'un couple, de la préparation au résultat : environ 9 h 30**, dont
+98 % en dynamique moléculaire. Toute optimisation qui ne porte pas sur l'étape
+07 est cosmétique.
+
+Détail de l'étape 07, par bras :
+
+| Sous-étape | Durée | Rôle |
+|---|---|---|
+| Solvatation et paramétrisation | ≈ 20 s | boîte dodécaédrique, ions à 150 mM ; charges relues du cache |
+| Minimisation | 1 à 2 min | résout les contacts trop courts hérités du docking |
+| Chauffage NVT, 100 ps | ≈ 30 s | montée en température par paliers, pour ne pas déformer le complexe |
+| Équilibration NPT, 500 ps | ≈ 3 min | ajustement de la densité sous barostat, journalisé pour prouver sa convergence |
+| **Production, 50 ns** | **≈ 4.6 h** | la trajectoire analysée |
+
 
 ---
 
@@ -145,8 +200,10 @@ différentielle. Verrouillé par une assertion formule + charge dans le script 0
 ### 4.4 La sortie de smina n'est pas la molécule fournie
 
 smina passe par **PDBQT**, format AutoDock qui ne conserve que les hydrogènes
-polaires et ne porte aucune charge formelle. Mesure : **30 atomes rendus sur 43**
-pour iE-DAP, atomes lourds réordonnés (CCCCOON… → CCOONCO…).
+polaires et ne porte aucune charge formelle. Mesure faite sur la forme neutre
+alors en usage (43 atomes) : **30 atomes rendus sur 43**, atomes lourds
+réordonnés (CCCCOON… → CCOONCO…). Le protomère corrigé en compte 42 (§4.3) ; la
+perte est de même nature.
 
 Paramétrer cette sortie telle quelle laisse openff/RDKit recompléter les
 hydrogènes par les règles de valence, ce qui **reconstruit la forme neutre en
@@ -208,10 +265,16 @@ liaison du miroir ? » demanderait plusieurs poses de départ et des répliques.
 Chaque hydrogène est porté à 4 uma, la masse étant retirée à l'atome lourd
 porteur. Mesure sur le complexe NOD1 solvaté (54 738 atomes) :
 
-| | Débit | 50 ns × 2 bras |
-|---|---|---|
-| 2 fs, sans HMR | 204.8 ns/jour | 11.7 h |
-| 4 fs, avec HMR | **407.2 ns/jour** | **5.9 h** |
+| Configuration | Débit (NVT) |
+|---|---|
+| 2 fs, sans HMR | 204.8 ns/jour |
+| 4 fs, avec HMR | **407.2 ns/jour** |
+
+Soit **×1.99**. Ces deux mesures sont prises sans barostat, ce qui isole
+l'effet du pas d'intégration. Le débit de PRODUCTION, barostat actif, est plus
+bas : **263 ns/jour** (médiane de 3 mesures, 256 à 317). C'est ce dernier
+chiffre qui fixe les durées annoncées, soit environ 9.1 h pour 50 ns × 2 bras
+au lieu de quelque 18 h sans HMR.
 
 Légitimité : **seules les masses changent, jamais le potentiel.** La
 thermodynamique d'équilibre est inchangée (les masses n'entrent pas dans la
@@ -350,7 +413,7 @@ ne diffèrent que par la chiralité : le ΔΔG ne peut pas absorber une différe
 de paramétrisation. C'est ce qui distingue une comparaison d'énantiomères d'une
 comparaison de deux systèmes vaguement similaires.
 
-**Un budget de calcul compatible avec la rigueur.** Un couple coûte ≈ 5.9 h de
+**Un budget de calcul compatible avec la rigueur.** Un couple coûte ≈ 9.1 h de
 GPU en production et ≈ 1 min de scoring. Ce coût rend abordables les contrôles
 qui manquent encore (répliques et expérience nulle nat-vs-nat), là où un
 protocole trois fois plus lent les rendrait hors de portée. La performance n'est
@@ -388,7 +451,7 @@ bash scripts/run.sh scripts/03_benchmark_gpu.py         # débit MD réel
 
 # pilote NOD1 / iE-DAP
 bash scripts/run.sh scripts/05_dock_nod1.py             # cible, ligands, docking
-bash scripts/launch.sh 50                               # production détachée (~5.9 h)
+bash scripts/launch.sh 50                               # production détachée (~9 h)
 bash scripts/status.sh                                  # suivi
 bash scripts/run.sh scripts/08_mmgbsa_nod1.py           # ΔΔG
 bash scripts/run.sh scripts/09_analyse_nod1.py          # figures + contacts
@@ -401,6 +464,24 @@ bash scripts/test.sh -m "not slow"                      # rapide
 Production lancée en `setsid` : elle survit à la fermeture du terminal. Un run
 antérieur était mort une minute après la fermeture de l'onglet, `nohup` ne
 protégeant que de SIGHUP.
+
+### Robustesse d'une production longue
+
+`launch.sh` passe d'abord par un **contrôle pré-vol** (`scripts/preflight.py`,
+lançable seul) : production concurrente, plateforme CUDA, espace disque,
+fichiers de préparation, protomère des deux ligands, cohérence du cache de
+charges, poses de départ constructibles et miroir énantiomère exact. Trente
+secondes qui évitent de découvrir un problème après six heures de GPU.
+
+Une production interrompue **reprend sur son checkpoint** au lieu de repartir de
+zéro : le script détecte `prod_<bras>.chk`, relit le système solvaté, tronque la
+trajectoire au dernier état sauvegardé et prolonge les sorties. Le système est
+relu et jamais re-solvaté, `addSolvent` plaçant les ions sans graine fixée : une
+re-solvatation donnerait le même nombre d'atomes dans un ordre différent, que
+`loadCheckpoint` accepterait sans broncher (voir `docs/00`, point 15).
+
+Un `InstabilityGuard` interrompt la production dès que l'énergie cesse d'être
+finie, plutôt que d'écrire des NaN pendant des heures en occupant le GPU.
 
 ---
 

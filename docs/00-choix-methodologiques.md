@@ -774,8 +774,8 @@ signal recherché.
 
 | Configuration | Débit | Production 50 ns × 2 bras |
 |---|---|---|
-| 2 fs, sans HMR | 204.8 ns/jour | 11.7 h |
-| 4 fs, avec HMR | **407.2 ns/jour** | **5.9 h** |
+| 2 fs, sans HMR | 204.8 ns/jour | — |
+| 4 fs, avec HMR | **407.2 ns/jour** | — |
 
 **×1.99.** Pourquoi c'est légitime ici, et pas un raccourci :
 
@@ -802,6 +802,232 @@ autant publiable : il manque toujours le contrôle de calibration (audit 1.1), l
 répliques et l'expérience nulle naturel-vs-naturel (audit 1.2), le critère de
 convergence sur la série d'énergie (audit 2.3) et l'ancrage externe du site NOD1
 (audit 2.8). Un ΔΔG rapide reste un ΔΔG non calibré.
+
+---
+
+## 15. Optimisation : deux pistes rejetées par la mesure, la fiabilité prise au sérieux
+
+**Décidé le 2026-09-04**, après le point 14.
+
+### Deux optimisations mesurées, deux refusées
+
+Les deux paraissaient évidentes. Les deux sont mauvaises, et seule la mesure le
+dit.
+
+**Précision mixte pour les points d'énergie MM/GBSA.** La RTX 4070 calcule en
+FP64 à 1/64 du débit FP32 : imposer la double précision paraissait un luxe.
+
+| Précision | ΔG (mêmes images) | Coût par image |
+|---|---|---|
+| double | **−27.0933** kcal/mol | 102.0 ms |
+| mixed | −24.6152 kcal/mol | 19.2 ms |
+| single | −24.6152 kcal/mol | 17.4 ms |
+
+×5.3 de gain, pour **2.48 kcal/mol de biais** — l'ordre de grandeur du signal
+recherché. Rejeté. La raison est structurelle : le ΔG est une différence de
+grands nombres (−7271 − (−7170) = −24.6, soit 0.3 % des magnitudes), régime où
+l'annulation catastrophique amplifie toute erreur d'arrondi. La double précision
+n'était pas de la prudence excessive, elle est nécessaire — et c'est désormais
+mesuré, plus supposé.
+
+Décomposition du coût restant : `setPositions` 0.16 ms, `getState(getEnergy)`
+43.4 ms. **Le surcoût Python est de 0 %** : les 102 ms sont du calcul. Ce module
+est à son plancher.
+
+**Fréquence du barostat Monte-Carlo.** Chaque tentative évalue l'énergie du
+système entier ; la valeur par défaut (25 pas) paraissait coûteuse.
+
+| Fréquence | Débit |
+|---|---|
+| sans barostat (plafond) | 343.5 ns/jour |
+| tous les 25 pas | 291.2 ns/jour |
+| tous les 100 pas | 245.3 ns/jour |
+| tous les 250 pas | 277.3 ns/jour |
+
+Non monotone : espacer les tentatives devrait accélérer, on observe l'inverse
+puis le contraire. Le signal est **noyé dans la variance machine**, de l'ordre de
+±20 % d'un run à l'autre (horloges GPU, thermique). Aucun gain reproductible à
+réclamer, donc aucun changement. Corollaire à retenir pour les estimations de
+durée : le « 407 ns/jour » du point 14 porte cette même incertitude, et il a de
+surcroît été mesuré **sans barostat** — erreur corrigée au point 16.
+
+### La fiabilité, elle, avait un vrai gisement
+
+Cette machine a redémarré **deux fois** pendant le projet. Les deux fois, la
+production est repartie de zéro — dont une à 37.6 ns sur 50. Le checkpoint
+existait à chaque fois ; rien ne savait s'en servir.
+
+**Reprise sur checkpoint** (`run_full_protocol(..., resume=True)`). Trois
+précautions, chacune nécessaire :
+
+1. *Le barostat est ajouté avant le chargement.* `loadCheckpoint` exige un
+   système identique à celui qui l'a écrit ; la production tournant en NPT,
+   l'oublier ferait échouer le chargement.
+2. *La trajectoire est tronquée au dernier état sauvegardé.* Le DCD et le
+   checkpoint sont écrits par deux reporters distincts et le processus peut
+   mourir entre les deux. Conserver les images orphelines décalerait toute la
+   série temporelle.
+3. *Les sorties sont ouvertes en prolongement.* Une reprise qui écraserait le
+   DCD détruirait exactement ce qu'elle vient sauver.
+
+**Le système est relu, jamais re-solvaté** — et ce point n'est pas une
+optimisation. Vérifié dans le code installé (`openmm/app/modeller.py:353`) :
+`addSolvent` remplace des molécules d'eau par des ions via
+`random.choice(replaceableList)`, **sans graine fixée**. Deux solvatations du
+même complexe donnent le même *nombre* d'atomes dans un *ordre* différent. Or
+`loadCheckpoint` ne vérifie que le nombre de particules : il accepterait, et
+appliquerait positions et vitesses aux mauvais atomes. Pas d'erreur, pas
+d'avertissement, trajectoire corrompue qui continue. On relit donc le PDB
+solvaté écrit au lancement, qui *est* le système du checkpoint.
+
+Vérifié de bout en bout sur le système NOD1 réel : production courte, salissure
+délibérée du DCD par une image orpheline, reprise à durée doublée. Image
+orpheline supprimée, images accumulées sans doublon, série temporelle
+strictement croissante à intervalle constant, et une reprise sur production déjà
+complète ne fait rien.
+
+**Fréquence du checkpoint : mon propre arbitrage corrigé par la mesure.** J'avais
+synchronisé le checkpoint sur chaque image, pour une reprise « exacte ». Mesure
+(54 738 atomes) : une écriture coûte **54 ms**, synchronisation GPU → CPU
+comprise.
+
+| Fréquence | Écritures sur 50 ns | Coût | Part de la production |
+|---|---|---|---|
+| chaque image | 5000 | 272 s | **2.56 %** |
+| toutes les 10 images | 500 | 27 s | **0.26 %** |
+
+Payer 2.3 % sur *chaque* production pour économiser 90 ps lors des *rares*
+reprises est un mauvais échange. Retour à 10, la troncature rendant de toute
+façon n'importe quel intervalle exact.
+
+**Garde-fou d'instabilité.** Un système qui explose à 30 ns continuait d'écrire
+des NaN pendant des heures : trajectoire perdue, GPU occupé jusqu'au bout.
+`InstabilityGuard` lève dès que l'énergie cesse d'être finie. Coût nul :
+l'énergie est déjà calculée pour le journal, on l'échantillonne au même rythme.
+
+**Contrôle pré-vol** (`scripts/preflight.py`, appelé par `launch.sh`). Trente
+secondes qui vérifient, dans l'ordre où les choses cassent réellement : aucune
+production concurrente, plateforme CUDA, espace disque suffisant pour les
+trajectoires, fichiers de préparation présents, protomère des deux ligands,
+cohérence du cache de charges, poses de départ constructibles et miroir
+énantiomère exact. Chaque échec y coûte trente secondes ; le même échec
+découvert en production coûte la production.
+
+Observation au passage, notée pendant la mesure des autres couples : le
+récepteur TLR1/2 **produit des NaN dès le premier pas** si la minimisation est
+écourtée à 100 itérations. La minimisation complète (105 s) est nécessaire.
+
+### Ce que ça change
+
+Rien sur la physique, rien sur le ΔΔG. Une production interrompue reprend au
+lieu de recommencer, une production qui diverge s'arrête au lieu de tourner à
+vide, et une erreur de préparation se voit avant l'engagement du GPU et non
+après. Sur une machine qui redémarre, c'est le poste où le temps se perdait
+réellement.
+
+---
+
+## 16. Relecture de crédibilité : cinq affirmations fausses ou fragiles, corrigées
+
+**Décidé le 2026-09-05.** Relecture des documents comme le ferait un rapporteur :
+en recalculant les chiffres et en cherchant les contradictions internes, plutôt
+qu'en relisant le texte.
+
+### 16.1 — Le débit publié n'était pas celui de la production (grave)
+
+Le chiffre affiché partout, **407 ns/jour**, a été mesuré sans barostat. Or
+`run_full_protocol` appelle `equilibrate_npt`, qui ajoute un `MonteCarloBarostat`
+**conservé pendant toute la production** : la production tourne en NPT.
+
+Mesure refaite dans la configuration exacte de production, 5000 pas chronométrés,
+trois répétitions :
+
+| Conditions | Débit (médiane de 3) | Plage |
+|---|---|---|
+| NVT, sans barostat | 385.8 ns/jour | 339–389 |
+| **NPT, production réelle** | **262.8 ns/jour** | 256–317 |
+
+Le chiffre publié était donc **1.55× trop optimiste**, et toutes les durées qui
+en découlaient avec lui : une production 50 ns × 2 bras prend **≈ 9.1 h**
+(fourchette 7.6–9.4 h), et non 5.9 h.
+
+Le gain HMR de ×1.99 (point 15) reste valide : ses deux termes ont été mesurés
+dans les mêmes conditions NVT, et le rapport est ce qui était en jeu. Seules les
+valeurs absolues étaient inutilisables comme durées de production.
+
+Corrigé dans `README.md`, `README-TECHNIQUE.md`, `HANDOFF.md` et
+`scripts/preflight.py`, qui annonçait la durée estimée au lancement.
+
+**Leçon** : une mesure de performance doit reproduire la configuration réelle, y
+compris ses composants « accessoires ». Le barostat n'était pas un détail, il
+coûte un tiers du débit.
+
+### 16.2 — Une estimation reposait sur une structure écartée
+
+Le coût GPU annoncé pour TLR5 (342 179 atomes, 23.2 h) a été mesuré sur
+`complexe_naturel.pdb`, qui provient de **3V47** : la structure chimérique de
+poisson-zèbre explicitement écartée du projet (point 8). Le modèle ColabFold du
+TLR5 humain n'a pas encore été produit.
+
+Le chiffre ne mesurait donc pas le système qui sera simulé. Retiré. TLR5 est
+désormais marqué **non estimable** jusqu'à ce que le modèle humain existe.
+
+Le tableau des coûts distingue maintenant explicitement *mesuré*, *extrapolé* et
+*non estimable*. TLR1/2 est extrapolé : débit mesuré sans barostat (186 ns/jour)
+ramené aux conditions de production par le rapport NPT/NVT mesuré sur NOD1
+(0.68), soit ≈ 127 ns/jour et ≈ 19 h.
+
+### 16.3 — « Sans exception » était faux, et contredit par le ligand du projet
+
+`README-SIMPLE` affirmait que tout le vivant est homochiral « sans exception » ;
+`README-TECHNIQUE` parlait d'homochiralité « universelle ». Deux problèmes :
+
+- la **glycine** n'a pas de centre stéréogène : elle n'est ni L ni D ;
+- les **D-acides aminés existent** dans le vivant, par des voies non
+  ribosomiques : D-alanine et D-glutamate du peptidoglycane, méso-DAP (lui-même
+  achiral), plusieurs antibiotiques peptidiques.
+
+Surtout, l'affirmation était **contredite deux pages plus loin par le projet
+lui-même** : iE-DAP, le ligand du couple pilote, contient un γ-D-glutamyl et un
+méso-DAP. C'est précisément pour cela que son miroir n'est pas « la version D »
+mais l'énantiomère complet de ses trois centres (point 4.2). Un rapporteur aurait
+relevé la contradiction immédiatement.
+
+Reformulé : l'homochiralité vaut pour la **traduction ribosomique**, exclusivement
+en L. Les exceptions sont réelles, circonscrites, et une bactérie miroir les
+inverserait aussi. L'argument du projet en sort renforcé, pas affaibli.
+
+### 16.4 — pLDDT annoncé à 96, mesuré à 95.0
+
+Recalculé sur les 2358 atomes du domaine LRR découpé : moyenne **95.0**, médiane
+97.0, minimum 73.2, et **aucun atome sous 70**. L'écart au chiffre annoncé est
+mineur, mais c'est exactement le genre de valeur qu'un rapporteur recalcule.
+
+La formulation gagne au passage : « aucun atome sous 70 » est un argument
+vérifiable, là où « pLDDT ≈ 96 » n'était qu'une moyenne arrondie.
+
+### 16.5 — Deux incohérences de moindre portée
+
+**Renvoi interne faux.** Le tableau des paramètres de production renvoyait au
+§4.5 pour le HMR, qui se trouve au §4.7 ; §4.5 traite des charges AM1-BCC.
+
+**Comptage d'atomes incohérent.** Le §4.4 annonçait « 30 atomes rendus sur 43 »
+pour iE-DAP, à côté d'un protomère `C12H20N3O7⁻` qui en compte 42. La mesure
+avait été faite sur la forme neutre alors en usage, avant la correction du
+protomère (point 10). Précisé.
+
+**Raison d'abandon absente du code.** `config.py` conservait Dectine-1 avec la
+note « si temps », alors que les README annoncent son abandon pour cause de
+structure murine. Un lecteur confrontant code et documentation y aurait vu une
+divergence. La raison est désormais dans le code.
+
+### Ce que cette relecture ne corrige pas
+
+Les limites de fond restent entières et sont listées au §7 du README technique :
+absence de contrôle de calibration, absence de répliques et d'expérience nulle,
+convergence jugée sur le RMSD plutôt que sur l'énergie, entropie négligée, et
+surtout le site de liaison de NOD1 qui reste déduit de la forme du récepteur
+plutôt qu'observé. Aucune correction éditoriale ne les lève.
 
 ---
 

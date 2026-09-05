@@ -34,16 +34,27 @@ Maintenant, le fait vraiment étrange :
 
 > **Tout le vivant sur Terre a choisi un seul côté.**
 
-- Toutes tes protéines sont bâties avec des acides aminés **gauches**.
-- Tous tes sucres, ton ADN, sont **droits**.
+- Tes protéines sont assemblées, acide aminé après acide aminé, en version
+  **gauche** uniquement.
+- Tes sucres et ton ADN sont **droits**.
 - Pareil pour les bactéries, les arbres, les champignons, les baleines, les
   moisissures du frigo.
 
-Sans exception. Depuis quatre milliards d'années.
+Depuis quatre milliards d'années, et personne ne sait pourquoi. Les deux
+versions sont aussi stables, aussi faciles à fabriquer. La vie a simplement pris
+un côté au tout début, et tout ce qui a suivi en a hérité.
 
-Et personne ne sait pourquoi. Les deux versions sont aussi stables, aussi
-faciles à fabriquer. La vie a simplement pris un côté au tout début, et
-absolument tout ce qui a suivi en a hérité.
+**Une précision qui compte pour la suite.** « Un seul côté » vaut pour la
+machinerie qui fabrique les protéines : elle n'accepte que des acides aminés
+gauches. Mais le vivant sait aussi produire quelques briques droites, par des
+voies dédiées, pour des usages précis. Les bactéries en mettent notamment dans
+leur paroi.
+
+Ce n'est pas un détail : **le morceau de bactérie étudié dans ce projet en
+contient une.** Son image miroir n'est donc pas « la version droite » de la
+molécule, c'est l'inversion de ses trois centres à la fois. Inverser à la main
+en oublierait un. C'est exactement pourquoi on inverse tout d'un coup, par
+réflexion (étape 2 plus bas).
 
 ---
 
